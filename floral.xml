@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote name="floral-github" fetch="https://github.com/" />
+
+  <!-- Select the Floral device tree and its device-specific vendor. -->
+  <remove-project path="device/google/coral" optional="true" />
+  <remove-project path="device/google/flame" optional="true" />
+  <remove-project path="vendor/google/coral" optional="true" />
+  <remove-project path="vendor/google/flame" optional="true" />
+  <remove-project path="kernel/google/msm-4.14" optional="true" />
+  <remove-project path="packages/apps/ElmyraService" optional="true" />
+  <remove-project path="vendor/lunaris/dolby" optional="true" />
+  <remove-project path="vendor/hecker/floral/motionsense" optional="true" />
+  <remove-project path="vendor/hecker/floral/faceid" optional="true" />
+
+  <project path="device/google/coral" name="its-hecker/penguinos-floral-dt"
+           remote="floral-github" revision="1cb54517edd46032f849ec7aa4e70d4c36f09dfe" upstream="refs/heads/main" />
+  <project path="vendor/google/coral" name="its-hecker/pixelos_proprietary_vendor_google_coral"
+           remote="floral-github" revision="fc4a5b6b20c40954c2ad99d543f8c1e61e86d03a" upstream="refs/heads/penguinos" />
+
+  <!-- cnb was renamed to cnb-Latest-stable. Preserve its KernelSU submodule. -->
+  <project name="its-hecker/infinity_cnb_kernel_google_msm-4.14"
+           path="kernel/google/msm-4.14" remote="floral-github"
+           revision="aaaa03e40200825133d21402cad8f2a86939a778"
+           upstream="refs/heads/cnb-Latest-stable" dest-branch="cnb-Latest-stable"
+           sync-s="true" />
+
+  <project name="LineageOS/android_packages_apps_ElmyraService"
+           path="packages/apps/ElmyraService" remote="floral-github"
+           revision="baab2beb7165caef27b4ee235641775e9d189acc"
+           upstream="refs/heads/lineage-24.0" />
+  <project name="its-hecker/vendor_lunaris_dolby"
+           path="vendor/lunaris/dolby" remote="floral-github"
+           revision="544e6271c955e2bf450c8481ac1e71551cb5a800"
+           upstream="refs/heads/pixelos-compat" dest-branch="pixelos-compat" />
+
+  <!-- Validated standalone plugins, with their own immutable prebuilt locks. -->
+  <project name="its-hecker/floral-motionsense-plugin"
+           path="vendor/hecker/floral/motionsense" remote="floral-github"
+           revision="92d0051faf53acac3dfefec6597a12d587eefa73"
+           upstream="refs/heads/main" dest-branch="main" />
+  <project name="its-hecker/floral-3D-faceid-plugin"
+           path="vendor/hecker/floral/faceid" remote="floral-github"
+           revision="d998995e1452d2c3d9882bfdf659e1db760a99be"
+           upstream="refs/heads/main" dest-branch="main" />
+
+  <!-- Pin the sources touched by the guarded build preparation patches. -->
+  <extend-project name="Project-PenguinOS/android_vendor_aospa" path="vendor/aospa"
+                  revision="22f5b7fa813b4f9360b5abe37efd5238bc49e495" upstream="refs/heads/celerity" />
+  <extend-project name="AOSPA/android_kernel_build" path="device/qcom/kernelscripts"
+                  revision="949c19886fc23249399b73256a41f436823df8f9" upstream="refs/heads/calcite" />
+
+  <!-- Keep the PixelOS versions of the legacy hardware modules used by Floral. -->
+  <remove-project path="hardware/lineage/compat" optional="true" />
+  <remove-project path="hardware/qcom/bootctrl" optional="true" />
+  <remove-project path="hardware/qcom/wlan" optional="true" />
+
+  <project path="hardware/google/pixel" name="PixelOS-AOSP/android_hardware_google_pixel"
+           remote="floral-github" revision="697c4370a439248b35f8cbc17dde3974425b4fc2" upstream="refs/heads/seventeen" />
+  <project path="hardware/google/pixel-sepolicy" name="PixelOS-AOSP/android_hardware_google_pixel-sepolicy"
+           remote="floral-github" revision="ef0ea0b5ce600712c586e880d6876eeba1f85cc7" upstream="refs/heads/seventeen" />
+  <project path="device/lineage/sepolicy" name="LineageOS/android_device_lineage_sepolicy"
+           remote="floral-github" revision="b5b91f8e77e99a310109a630b40153eeb35083d7" upstream="refs/heads/lineage-24.0" />
+  <project path="hardware/lineage/interfaces" name="LineageOS/android_hardware_lineage_interfaces"
+           remote="floral-github" revision="68dca0c523594fb7c34e94782d0f21660530a2dc" upstream="refs/heads/lineage-24.0" />
+  <project path="hardware/lineage/compat" name="LineageOS/android_hardware_lineage_compat"
+           remote="floral-github" revision="590c94850e079642136a4577305d02e4174caabc" upstream="refs/heads/lineage-24.0" />
+  <project path="hardware/knowles/athletico/sound_trigger_hal" name="LineageOS/android_hardware_knowles_athletico_sound_trigger_hal"
+           remote="floral-github" revision="16e4d7f6d3201905f103d36ff7195d9e21ce1671" upstream="refs/heads/lineage-24.0" />
+  <project path="hardware/qcom-caf/bootctrl" name="LineageOS/android_hardware_qcom_bootctrl"
+           remote="floral-github" revision="25092672e644459db328b43fd1c7c57cbff65c91" upstream="refs/heads/lineage-24.0-caf" />
+  <project path="hardware/qcom/sm8150/display" name="LineageOS/android_hardware_qcom_sm8150_display"
+           remote="floral-github" revision="bcae019f82f572efbe44fa4b68fde26690bce3c3" upstream="refs/heads/lineage-24.0" />
+  <project path="hardware/qcom/sm8150/gps" name="LineageOS/android_hardware_qcom_sm8150_gps"
+           remote="floral-github" revision="c102ecaf661265a5bb4bab028c4dba8454016e1b" upstream="refs/heads/lineage-24.0" />
+  <project path="hardware/qcom/wlan" name="LineageOS/android_hardware_qcom_wlan"
+           remote="floral-github" revision="4110d72de3eaee4c1091ba17af8b52449acb62a6" upstream="refs/heads/lineage-24.0" />
+  <project path="vendor/qcom/opensource/data-ipa-cfg-mgr-legacy-um" name="LineageOS/android_vendor_qcom_opensource_data-ipa-cfg-mgr"
+           remote="floral-github" revision="897e6561f4c16cc1ab0bf397e6c0a657a1ed6231" upstream="refs/heads/lineage-24.0-legacy-um" />
+  <project path="vendor/qcom/opensource/display" name="LineageOS/android_vendor_qcom_opensource_display"
+           remote="floral-github" revision="74a5c56b6229dbe518b43cf781e4c52e1a5ecb71" upstream="refs/heads/lineage-24.0" />
+  <project path="vendor/codeaurora/telephony" name="LineageOS/android_vendor_codeaurora_telephony"
+           remote="floral-github" revision="5a048ec75771d4cc7becce6ab71c06de55f7a374" upstream="refs/heads/lineage-24.0" />
+  <project path="prebuilts/tools-lineage" name="LineageOS/android_prebuilts_tools-lineage"
+           remote="floral-github" revision="7cf9452c82a0265d00e8c444f25639b7aa66969d" upstream="refs/heads/lineage-24.0" />
+  <project path="hardware/qcom-caf/common" name="LineageOS/android_hardware_qcom-caf_common"
+           remote="floral-github" revision="5e84e6f8fc47530881fa8d95cf533617ff51e820" upstream="refs/heads/lineage-24.0">
+    <linkfile src="os_pickup_qssi.bp" dest="hardware/qcom-caf/sm8150/Android.bp" />
+  </project>
+  <project path="prebuilts/kernel-build-tools" name="kernel/prebuilts/build-tools"
+           remote="aosp" revision="refs/heads/main-kernel-2025" clone-depth="1" />
+
+  <!-- Export only the original PixelOS kernel rules. -->
+  <project path="vendor/hecker/floral/kernel-build" name="PixelOS-AOSP/android_vendor_lineage"
+           remote="floral-github" revision="0d2ff0b8055eb745d36dfef3600a73f5185a4fff" upstream="refs/heads/seventeen">
+    <linkfile src="build/tasks/kernel.mk" dest="vendor/lineage/build/tasks/kernel.mk" />
+    <linkfile src="build/core/utils.mk" dest="vendor/lineage/build/core/utils.mk" />
+    <linkfile src="config/BoardConfigKernel.mk" dest="vendor/lineage/config/BoardConfigKernel.mk" />
+    <linkfile src="config/BoardConfigReservedSize.mk" dest="vendor/lineage/config/BoardConfigReservedSize.mk" />
+  </project>
+</manifest>

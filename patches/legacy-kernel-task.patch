@@ -1,0 +1,14 @@
+diff --git a/kernel_definitions.mk b/kernel_definitions.mk
+--- a/kernel_definitions.mk
++++ b/kernel_definitions.mk
+@@ -1,3 +1,5 @@
++# Floral uses the same kernel and DTBO tasks as its PixelOS device tree.
++ifneq ($(FLORAL_USE_LINEAGE_KERNEL),true)
+ ifeq ($(TARGET_PREBUILT_KERNEL),)
+ 
+ include device/qcom/kernelscripts/legacy_definitions.mk
+@@ -354,3 +356,4 @@
+ 	cat $(shell find $(KERNEL_OUT)/arch/$(KERNEL_ARCH)/boot/dts -type f -name "*.dtb" | sort) > $@
+ 
+ endif
++endif
