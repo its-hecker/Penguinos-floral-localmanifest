@@ -2,11 +2,11 @@
 <manifest>
   <remote name="floral-github" fetch="https://github.com/" />
 
-  <!-- Select the Floral device tree and its device-specific vendor. -->
+  <!-- Use the shared Floral tree and the separate Flame vendor. -->
   <remove-project path="device/google/coral" optional="true" />
   <remove-project path="device/google/flame" optional="true" />
-  <remove-project path="vendor/google/coral" optional="true" />
   <remove-project path="vendor/google/flame" optional="true" />
+  <remove-project path="vendor/google/coral" optional="true" />
   <remove-project path="kernel/google/msm-4.14" optional="true" />
   <remove-project path="packages/apps/ElmyraService" optional="true" />
   <remove-project path="vendor/lunaris/dolby" optional="true" />
@@ -14,9 +14,9 @@
   <remove-project path="vendor/hecker/floral/faceid" optional="true" />
 
   <project path="device/google/coral" name="its-hecker/penguinos-floral-dt"
-           remote="floral-github" revision="1cb54517edd46032f849ec7aa4e70d4c36f09dfe" upstream="refs/heads/main" />
-  <project path="vendor/google/coral" name="its-hecker/pixelos_proprietary_vendor_google_coral"
-           remote="floral-github" revision="fc4a5b6b20c40954c2ad99d543f8c1e61e86d03a" upstream="refs/heads/penguinos" />
+           remote="floral-github" revision="e308fab43bef95cd0b76f35ef9ae98ac5e6ab5bd" upstream="refs/heads/flame" />
+  <project path="vendor/google/flame" name="its-hecker/pixelos-flame-vendor"
+           remote="floral-github" revision="8f1ff4f6b80441f8b4da2b3747d262ce5d82fbf4" upstream="refs/heads/penguinos" />
 
   <!-- cnb was renamed to cnb-Latest-stable. Preserve its KernelSU submodule. -->
   <project name="its-hecker/infinity_cnb_kernel_google_msm-4.14"
