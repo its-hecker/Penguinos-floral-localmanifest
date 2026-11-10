@@ -10,6 +10,7 @@ import xml.etree.ElementTree as ET
 
 from camera_install import configure as configure_camera
 from google_camera import prepare as prepare_google_camera
+from qcom_namespace import fix_qcom_common_namespaces
 
 
 FACE = Path("vendor/hecker/floral/faceid")
@@ -87,6 +88,8 @@ def prepare(device, offline):
 
     for project, patch in pending:
         subprocess.run(["git", "-C", project, "apply", patch], check=True)
+    if device == "coral":
+        fix_qcom_common_namespaces(Path.cwd())
     plugin_tool(FACE, "apply_framework_fixes.py", "--apply")
     configure_camera(Path.cwd(), write=True)
     plugin_tool(MOTION, "prepare.py", "--policy-dir", DEVICE / "sepolicy", *motion_args)
