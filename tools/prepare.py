@@ -54,6 +54,8 @@ def prepare(device, offline):
     if device == "coral":
         patches.extend([
             (Path("vendor/aospa"), PATCHES / "aospa-stop-on-lunch-error.patch"),
+            (Path("vendor/aospa"), PATCHES / "aospa-kernel-header-config.patch"),
+            (Path("vendor/hecker/floral/kernel-build"), PATCHES / "pixelos-kernel-headers.patch"),
             (Path("hardware/qcom-caf/common"), PATCHES / "qcom-caf-soong-providers.patch"),
             (Path("hardware/lineage/compat"), PATCHES / "lineage-compat-hidl-providers.patch"),
             # Celerity provides the Qualcomm display interfaces in Soong's global namespace.

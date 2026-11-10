@@ -1,0 +1,27 @@
+diff --git a/target/board/BoardConfigSoong.mk b/target/board/BoardConfigSoong.mk
+--- a/target/board/BoardConfigSoong.mk
++++ b/target/board/BoardConfigSoong.mk
+@@ -14,6 +14,23 @@
+ endef
+ 
+ $(foreach v,$(EXPORT_TO_SOONG),$(eval $(call addVar,$(v))))
++
++# The Floral kernel header generator uses the PixelOS toolchain settings.
++ifeq ($(FLORAL_USE_LINEAGE_KERNEL),true)
++PATH_OVERRIDE_SOONG := $(shell echo $(TOOLS_PATH_OVERRIDE))
++$(call add_soong_config_namespace,lineageVarsPlugin)
++$(call add_soong_config_var,lineageVarsPlugin, \
++    KERNEL_ARCH \
++    KERNEL_BUILD_OUT_PREFIX \
++    KERNEL_CROSS_COMPILE \
++    KERNEL_MAKE_CMD \
++    KERNEL_MAKE_FLAGS \
++    KERNEL_PATH \
++    PATH_OVERRIDE_SOONG \
++    TARGET_KERNEL_PLATFORM_TARGET \
++    TARGET_KERNEL_SOURCE \
++    TARGET_PREBUILT_KERNEL_HEADERS)
++endif
+ 
+ SOONG_CONFIG_NAMESPACES += aospaGlobalVars
+ SOONG_CONFIG_aospaGlobalVars += \

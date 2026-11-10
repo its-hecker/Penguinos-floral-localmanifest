@@ -1,0 +1,38 @@
+diff --git a/build/soong/Android.bp b/build/soong/Android.bp
+--- a/build/soong/Android.bp
++++ b/build/soong/Android.bp
+@@ -72,22 +72,6 @@
+     ],
+ }
+ 
+-bootstrap_go_package {
+-    name: "soong-lineage-mkdir",
+-    pkgPath: "lineage/soong/mkdir",
+-    deps: [
+-        "blueprint",
+-        "blueprint-pathtools",
+-        "soong",
+-        "soong-android",
+-    ],
+-    srcs: [
+-        "mkdir/init.go",
+-        "mkdir/mkdir.go",
+-    ],
+-    pluginFor: ["soong_build"],
+-}
+-
+ cc_defaults {
+     name: "generated_kernel_header_defaults",
+     generated_headers: ["generated_kernel_includes"],
+diff --git a/build/soong/generator/generator.go b/build/soong/generator/generator.go
+--- a/build/soong/generator/generator.go
++++ b/build/soong/generator/generator.go
+@@ -217,7 +217,7 @@
+ 				// sbox can only copy files, not directories, into the sandbox.
+ 				continue
+ 			}
+-			g.inputDeps = append(g.inputDeps, android.PathForSourceRelaxed(ctx, path))
++			g.inputDeps = append(g.inputDeps, android.PathForSource(ctx, path))
+ 		}
+ 	}
+ 
