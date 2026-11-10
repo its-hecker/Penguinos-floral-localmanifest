@@ -14,9 +14,9 @@
   <remove-project path="vendor/hecker/floral/faceid" optional="true" />
 
   <project path="device/google/coral" name="its-hecker/penguinos-floral-dt"
-           remote="floral-github" revision="48f6cea60ba4209d07232430c6e4a9fd38b3178b" upstream="refs/heads/main" />
+           remote="floral-github" revision="ce3b3b610b6cca840063ca466fb183da3f9afa7f" upstream="refs/heads/main" />
   <project path="vendor/google/coral" name="its-hecker/pixelos_proprietary_vendor_google_coral"
-           remote="floral-github" revision="fc4a5b6b20c40954c2ad99d543f8c1e61e86d03a" upstream="refs/heads/penguinos" />
+           remote="floral-github" revision="ed14d8ee5e3ad0357b41f7f64889fc7f913071c1" upstream="refs/heads/penguinos" />
 
   <!-- cnb was renamed to cnb-Latest-stable. Preserve its KernelSU submodule. -->
   <project name="its-hecker/infinity_cnb_kernel_google_msm-4.14"
