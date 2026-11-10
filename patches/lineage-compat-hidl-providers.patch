@@ -1,0 +1,43 @@
+diff --git a/Android.bp b/Android.bp
+index 05a9ff2..f53f1bd 100644
+--- a/Android.bp
++++ b/Android.bp
+@@ -26,38 +26,24 @@ cc_library_shared {
+     shared_libs: ["android.hardware.radio@1.0"],
+     system_ext_specific: true,
+     vendor_available: true,
+ }
+ 
+ cc_library_shared {
+     name: "android.hardware.sensors@1.0-convert-shared",
+     shared_libs: ["libhidlbase"],
+     whole_static_libs: ["android.hardware.sensors@1.0-convert"],
+     vendor_available: true,
+ }
+ 
+-cc_library_shared {
+-    name: "android.hidl.base@1.0",
+-    shared_libs: ["libhidlbase"],
+-    system_ext_specific: true,
+-    vendor_available: true,
+-}
+-
+-cc_library_shared {
+-    name: "android.hidl.manager@1.0",
+-    shared_libs: ["libhidlbase"],
+-    system_ext_specific: true,
+-    vendor_available: true,
+-}
+-
+ cc_library_shared {
+     name: "libaudioproxy_shim",
+     srcs: ["libaudioproxy/libaudioproxy_shim.cpp"],
+     proprietary: true,
+ }
+ 
+ cc_library_shared {
+     name: "libaudioutils_shim",
+     shared_libs: [
+         "libaudioutils",
+     ],
+     srcs: [

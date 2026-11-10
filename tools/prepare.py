@@ -51,6 +51,12 @@ def prepare(device, offline):
 
     patches = [(Path("vendor/aospa"), PATCHES / "aospa-floral.patch"),
                (Path("device/qcom/kernelscripts"), PATCHES / "legacy-kernel-task.patch")]
+    if device == "coral":
+        patches.extend([
+            (Path("vendor/aospa"), PATCHES / "aospa-stop-on-lunch-error.patch"),
+            (Path("hardware/qcom-caf/common"), PATCHES / "qcom-caf-soong-providers.patch"),
+            (Path("hardware/lineage/compat"), PATCHES / "lineage-compat-hidl-providers.patch"),
+        ])
     pending = [(project, patch) for project, patch in patches if patch_needed(project, patch)]
     plugin_tool(FACE, "apply_framework_fixes.py", "--check")
     configure_camera(Path.cwd())
