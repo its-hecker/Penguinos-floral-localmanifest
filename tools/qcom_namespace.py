@@ -6,7 +6,7 @@ Some legacy Qualcomm prebuilt modules in vendor/qcom/common have explicit
 namespaces.  The LineageOS SM8150 implementations of their dependencies are
 also explicitly namespaced; the legacy imports must refer to those namespaces.
 
-Apply only the six namespace declarations confirmed by the Coral build log.
+Apply only the namespace declarations confirmed by Coral build logs.
 Run from the ROM source root, via tools/prepare.py. Safe to rerun.
 """
 
@@ -22,6 +22,10 @@ TARGETS = (
     ),
     (Path("vendor/qcom/common/vendor/gps-legacy/Android.bp"),
      "hardware/qcom/sm8150/gps", "libgps.utils"),
+    (Path("vendor/qcom/common/vendor/wlan/Android.bp"),
+     "hardware/qcom/wlan/legacy", "libcld80211"),
+    (Path("vendor/qcom/common/vendor/wlan-legacy/Android.bp"),
+     "hardware/qcom/wlan/legacy", "libcld80211"),
 )
 
 # Soong namespaces are defined by their containing directory. A plain
