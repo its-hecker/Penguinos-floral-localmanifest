@@ -1,0 +1,10 @@
+diff --git a/os_pickup_qssi.bp b/os_pickup_qssi.bp
+--- a/os_pickup_qssi.bp
++++ b/os_pickup_qssi.bp
+@@ -1,6 +1,5 @@
+ soong_namespace {
+     imports: [
+-        "vendor/qcom/opensource/commonsys-intf/display",
+         "vendor/qcom/opensource/display",
+     ],
+ }

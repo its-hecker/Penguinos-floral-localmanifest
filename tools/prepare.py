@@ -56,6 +56,10 @@ def prepare(device, offline):
             (Path("vendor/aospa"), PATCHES / "aospa-stop-on-lunch-error.patch"),
             (Path("hardware/qcom-caf/common"), PATCHES / "qcom-caf-soong-providers.patch"),
             (Path("hardware/lineage/compat"), PATCHES / "lineage-compat-hidl-providers.patch"),
+            # Celerity provides the Qualcomm display interfaces in Soong's global namespace.
+            (Path("hardware/qcom-caf/common"), PATCHES / "qcom-caf-display-namespace.patch"),
+            (Path("hardware/qcom/sm8150/display"), PATCHES / "sm8150-display-namespace.patch"),
+            (Path("vendor/qcom/opensource/display"), PATCHES / "qcom-display-namespace.patch"),
         ])
     pending = [(project, patch) for project, patch in patches if patch_needed(project, patch)]
     plugin_tool(FACE, "apply_framework_fixes.py", "--check")
