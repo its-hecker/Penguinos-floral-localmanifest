@@ -26,6 +26,10 @@ TARGETS = (
      "hardware/qcom/wlan/legacy", "libcld80211"),
     (Path("vendor/qcom/common/vendor/wlan-legacy/Android.bp"),
      "hardware/qcom/wlan/legacy", "libcld80211"),
+    (Path("vendor/qcom/common/vendor/qseecomd-legacy/Android.bp"),
+     "vendor/qcom/opensource/display", "libdisplayconfig.qti"),
+    (Path("vendor/qcom/common/vendor/qseecomd/Android.bp"),
+     "vendor/qcom/opensource/display", "libdisplayconfig.qti"),
 )
 
 # Soong namespaces are defined by their containing directory. A plain
@@ -85,7 +89,7 @@ def fix_qcom_common_namespaces(root: Path) -> list[Path]:
         if changed:
             planned.append((destination, updated))
 
-    # Validate all six targets before mutating any of them.
+    # Validate every target before mutating any of them.
     for path, updated in planned:
         path.write_text(updated, encoding="utf-8")
         print(f"PenguinOS Coral Soong namespace: imported dependency in {path}")
