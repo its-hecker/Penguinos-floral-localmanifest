@@ -10,7 +10,7 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from qcom_mountpoints import (
     QCOM_BOARD, SOONG_MKDIR, RECIPE,
-    fix_qcom_mountpoint_rules, qualcomm_targets, transform,
+    fix_qcom_mountpoint_rules, guard_root_persist_rule, qualcomm_targets, transform,
 )
 
 QCOM = """FIRMWARE_MOUNT_POINT := $(TARGET_OUT_VENDOR)/firmware_mnt
@@ -30,7 +30,10 @@ $(SOCCP_MOUNT_POINT):
 $(VM_MOUNT_POINT):
 \t@mkdir -p $@
 $(PERSIST_MOUNT_POINT):
-\t@ln -sf something elsewhere
+\t@echo "Creating $(PERSIST_MOUNT_POINT)"
+ifneq ($(TARGET_MOUNT_POINTS_SYMLINKS),false)
+\t@ln -sf /mnt/vendor/persist $(TARGET_ROOT_OUT)/persist
+endif
 """
 MKDIR = "include $(BUILD_SYSTEM)/base_rules.mk\n\n" + RECIPE + "\nMORE := value\n"
 LEGACY = (
@@ -86,6 +89,19 @@ class MountpointRulesTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             transform(MKDIR, set())
 
+    def test_persist_root_symlink_has_one_owner(self):
+        guarded = guard_root_persist_rule(QCOM)
+        self.assertIn("ifeq ($(filter /mnt/vendor/persist:/persist,$(BOARD_ROOT_EXTRA_SYMLINKS)),)", guarded)
+        self.assertEqual(guarded.count("$(PERSIST_MOUNT_POINT):"), 1)
+        self.assertEqual(guard_root_persist_rule(guarded), guarded)
+        self.assertIn("@ln -sf /mnt/vendor/persist $(TARGET_ROOT_OUT)/persist", guarded)
+
+    def test_persist_root_rule_fails_closed_on_unexpected_recipe(self):
+        with self.assertRaises(ValueError):
+            guard_root_persist_rule(QCOM.replace(
+                "@ln -sf /mnt/vendor/persist $(TARGET_ROOT_OUT)/persist",
+                "@echo unexpected", 1))
+
     def test_full_prepare_twice(self):
         with tempfile.TemporaryDirectory() as tmp:
             base = Path(tmp)
@@ -93,12 +109,19 @@ class MountpointRulesTest(unittest.TestCase):
             mkdir = base / SOONG_MKDIR
             board.parent.mkdir(parents=True)
             mkdir.parent.mkdir(parents=True)
+            board_config = base / "device/google/coral/BoardConfig-common.mk"
+            rootdir = base / "system/core/rootdir/create_root_structure.mk"
+            board_config.parent.mkdir(parents=True)
+            rootdir.parent.mkdir(parents=True)
+            board_config.write_text("BOARD_ROOT_EXTRA_SYMLINKS := /mnt/vendor/persist:/persist\n")
+            rootdir.write_text("ALL_ROOTDIR_SYMLINKS += $(foreach s,$(BOARD_ROOT_EXTRA_SYMLINKS),x)\n")
             board.write_text(QCOM)
             mkdir.write_text(MKDIR)
-            self.assertEqual(fix_qcom_mountpoint_rules(base), [mkdir])
+            self.assertEqual(fix_qcom_mountpoint_rules(base), [board, mkdir])
             self.assertEqual(fix_qcom_mountpoint_rules(base), [])
             self.assertIn("soccp_firmware", mkdir.read_text())
             self.assertIn("$(TARGET_ROOT_OUT)/persist", mkdir.read_text())
+            self.assertIn("# BEGIN PenguinOS Floral root persist symlink ownership", board.read_text())
 
 
 if __name__ == "__main__":
