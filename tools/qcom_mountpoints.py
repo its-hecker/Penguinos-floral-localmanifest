@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Keep Qualcomm mountpoint recipes from conflicting with Soong mkdir."""
+"""Keep Qualcomm mountpoint and root symlink recipes from conflicting with Soong mkdir."""
 
 from pathlib import Path
 import re
@@ -15,11 +15,11 @@ LEGACY_COMMENT = "# PenguinOS Floral: Qualcomm's AndroidBoardCommon.mk owns thes
 
 ASSIGNMENT = re.compile(
     r"(?m)^[ \t]*([A-Za-z_]\w*)[ \t]*[:?+]?=[ \t]*"
-    r"\$\((TARGET_OUT_VENDOR|TARGET_OUT_PRODUCT)\)/([\w./-]+)"
+    r"\$\((TARGET_OUT_VENDOR|TARGET_OUT_PRODUCT|TARGET_ROOT_OUT)\)/([\w./-]+)"
 )
 VARIABLE_RULE = re.compile(r"(?m)^[ \t]*\$\(([A-Za-z_]\w*)\)[ \t]*:(?![=])")
 DIRECT_RULE = re.compile(
-    r"(?m)^[ \t]*\$\((TARGET_OUT_VENDOR|TARGET_OUT_PRODUCT)\)"
+    r"(?m)^[ \t]*\$\((TARGET_OUT_VENDOR|TARGET_OUT_PRODUCT|TARGET_ROOT_OUT)\)"
     r"/([\w./-]+)[ \t]*:(?![=])"
 )
 
