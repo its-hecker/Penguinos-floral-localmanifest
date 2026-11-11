@@ -60,6 +60,7 @@ def prepare(device, offline):
             (Path("vendor/aospa"), PATCHES / "aospa-stop-on-lunch-error.patch"),
             (Path("vendor/aospa"), PATCHES / "aospa-kernel-header-config.patch"),
             (Path("vendor/hecker/floral/kernel-build"), PATCHES / "pixelos-kernel-headers.patch"),
+            (Path("vendor/hecker/floral/kernel-build"), PATCHES / "pixelos-kernel-generator-unsandbox.patch"),
             (Path("vendor/hecker/floral/kernel-build"), PATCHES / "pixelos-soong-shared-dep.patch"),
             (Path("hardware/qcom-caf/common"), PATCHES / "qcom-caf-soong-providers.patch"),
             (Path("hardware/lineage/compat"), PATCHES / "lineage-compat-hidl-providers.patch"),
