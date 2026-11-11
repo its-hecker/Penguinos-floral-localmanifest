@@ -1,0 +1,29 @@
+diff --git a/build/soong/generator/generator.go b/build/soong/generator/generator.go
+--- a/build/soong/generator/generator.go
++++ b/build/soong/generator/generator.go
+@@ -258,13 +258,20 @@
+ 	// Dummy output dep
+ 	dummyDep := android.PathForModuleGen(ctx, ".dummy_dep")
+ 
+-	genDir := android.PathForModuleGen(ctx)
+-	manifestPath := android.PathForModuleOut(ctx, "generator.sbox.textproto")
+-
+-	// Use a RuleBuilder to create a rule that runs the command inside an sbox sandbox.
+-	rule := android.NewRuleBuilder(pctx, ctx).Sbox(genDir, manifestPath)
++	genDir := android.PathForModuleGen(ctx)
++	manifestPath := android.PathForModuleOut(ctx, "generator.sbox.textproto")
++
++	// The kernel Make headers_install task writes a tree of UAPI headers.
++	// Sbox only copies declared outputs (the dummy dependency) and can discard
++	// that tree, leaving Qualcomm display C++ modules without drm/media headers.
++	// Run only the kernel-header generator unsandboxed so the installed headers
++	// remain at the exported module-gen include paths. Keep other tasks sandboxed.
++	rule := android.NewRuleBuilder(pctx, ctx)
++	if ctx.ModuleName() != "generated_kernel_includes" {
++		rule = rule.Sbox(genDir, manifestPath)
++	}
+ 
+ 	rule.Command().
+ 		Text(rawCommand).
+ 		ImplicitOutput(dummyDep).
+ 		Implicits(g.inputDeps).
