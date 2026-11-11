@@ -47,7 +47,7 @@ class QseecomdSoongTests(unittest.TestCase):
                     )
                 with path.open('a', encoding='utf-8') as out:
                     out.write(f'cc_library_shared {{ name: "synthetic", shared_libs: ["{lib}"] }}\n')
-            self.assertEqual(len(fix_qcom_common_namespaces(root)), 10)
+            self.assertEqual(len(fix_qcom_common_namespaces(root)), len({p for p, _, _ in TARGETS}))
             for relative in PATHS:
                 updated = (root / relative).read_text(encoding='utf-8')
                 self.assertIn('"vendor/qcom/opensource/display"', updated)

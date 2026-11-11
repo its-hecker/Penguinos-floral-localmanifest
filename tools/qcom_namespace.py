@@ -32,6 +32,8 @@ TARGETS = (
      "vendor/qcom/opensource/display", "libdisplayconfig.qti"),
     (Path("vendor/qcom/common/vendor/display/5.15/Android.bp"),
      "vendor/qcom/common/vendor/display/4.14", "libsdedrm"),
+    (Path("vendor/qcom/common/vendor/perf/Android.bp"),
+     "vendor/qcom/opensource/display", "libdisplayconfig.qti"),
 )
 
 # Soong namespaces are defined by their containing directory. A plain
