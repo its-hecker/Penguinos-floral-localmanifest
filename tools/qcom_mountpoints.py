@@ -68,18 +68,84 @@ def transform(contents: str, targets: set[str]) -> str:
     return contents[:begin] + block + contents[finish:]
 
 
+PERSIST_GUARD_START = "# BEGIN PenguinOS Floral root persist symlink ownership\n"
+PERSIST_GUARD_END = "# END PenguinOS Floral root persist symlink ownership\n"
+PERSIST_RULE = "$(PERSIST_MOUNT_POINT):\n"
+
+
+def guard_root_persist_rule(contents: str) -> str:
+    """Give the rootdir BOARD_ROOT_EXTRA_SYMLINKS rule sole ownership of /persist.
+
+    Qualcomm's own root/persist rule conflicts with create_root_structure.mk
+    when the device already has /mnt/vendor/persist:/persist as a root symlink.
+    Keep Qualcomm's original rule for configurations without that symlink.
+    """
+    if PERSIST_GUARD_START in contents or PERSIST_GUARD_END in contents:
+        if contents.count(PERSIST_GUARD_START) != 1 or contents.count(PERSIST_GUARD_END) != 1:
+            raise ValueError("Malformed Qualcomm persist guard")
+        start = contents.index(PERSIST_GUARD_START)
+        finish = contents.index(PERSIST_GUARD_END, start)
+        current = contents[start:finish]
+        if PERSIST_RULE not in current or "BOARD_ROOT_EXTRA_SYMLINKS" not in current:
+            raise ValueError("Unexpected Qualcomm persist guard contents")
+        return contents
+    if contents.count(PERSIST_RULE) != 1:
+        raise ValueError("Expected exactly one Qualcomm PERSIST_MOUNT_POINT rule")
+    if "PERSIST_MOUNT_POINT := $(TARGET_ROOT_OUT)/persist" not in contents:
+        raise ValueError("Unexpected Qualcomm persist output location")
+    start = contents.index(PERSIST_RULE)
+    finish = contents.find("\nendif\n", start)
+    if finish < 0:
+        raise ValueError("Qualcomm persist rule has no terminating conditional")
+    finish += len("\nendif\n")
+    original_rule = contents[start:finish]
+    if (
+        '@echo "Creating $(PERSIST_MOUNT_POINT)"' not in original_rule
+        or "ifneq ($(TARGET_MOUNT_POINTS_SYMLINKS),false)" not in original_rule
+        or "@ln -sf /mnt/vendor/persist $(TARGET_ROOT_OUT)/persist" not in original_rule
+    ):
+        raise ValueError("Unexpected Qualcomm persist recipe; refusing to change it")
+    guard = (
+        PERSIST_GUARD_START
+        + "ifeq ($(filter /mnt/vendor/persist:/persist,$(BOARD_ROOT_EXTRA_SYMLINKS)),)\n"
+        + original_rule
+        + "endif\n"
+        + PERSIST_GUARD_END
+    )
+    return contents[:start] + guard + contents[finish:]
+
+
 def fix_qcom_mountpoint_rules(root: Path) -> list[Path]:
     root = Path(root)
     board = root / QCOM_BOARD
     mkdir = root / SOONG_MKDIR
     if not board.is_file() or not mkdir.is_file():
         raise FileNotFoundError("Sync Qualcomm core-utils and vendor/aospa before preparing Floral")
-    targets = qualcomm_targets(board.read_text(encoding="utf-8"))
+    board_config = root / "device/google/coral/BoardConfig-common.mk"
+    rootdir = root / "system/core/rootdir/create_root_structure.mk"
+    if not board_config.is_file() or not rootdir.is_file():
+        raise FileNotFoundError("Floral board config or rootdir source missing")
+    if "/mnt/vendor/persist:/persist" not in board_config.read_text(encoding="utf-8"):
+        raise ValueError("Floral no longer declares its root persist symlink")
+    rootdir_content = rootdir.read_text(encoding="utf-8")
+    if "ALL_ROOTDIR_SYMLINKS += $(foreach s,$(BOARD_ROOT_EXTRA_SYMLINKS)" not in rootdir_content:
+        raise ValueError("PenguinOS rootdir no longer owns BOARD_ROOT_EXTRA_SYMLINKS")
+
+    board_original = board.read_text(encoding="utf-8")
+    board_modified = guard_root_persist_rule(board_original)
+    targets = qualcomm_targets(board_modified)
     original = mkdir.read_text(encoding="utf-8")
     modified = transform(original, targets)
-    if modified == original:
+
+    changed = []
+    if board_modified != board_original:
+        board.write_text(board_modified, encoding="utf-8")
+        changed.append(board)
+        print("PenguinOS Floral: rootdir now solely owns the /persist symlink")
+    if modified != original:
+        mkdir.write_text(modified, encoding="utf-8")
+        changed.append(mkdir)
+        print("PenguinOS Floral: excluded duplicate Soong mkdir recipes for " + ", ".join(sorted(targets)))
+    if not changed:
         print("PenguinOS Floral: Qualcomm mountpoint compatibility already configured")
-        return []
-    mkdir.write_text(modified, encoding="utf-8")
-    print("PenguinOS Floral: excluded duplicate Soong mkdir recipes for " + ", ".join(sorted(targets)))
-    return [mkdir]
+    return changed
