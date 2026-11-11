@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 from camera_install import configure as configure_camera
 from google_camera import prepare as prepare_google_camera
 from qcom_namespace import fix_qcom_common_namespaces
+from qcom_mountpoints import fix_qcom_mountpoint_rules
 from libgui_compat import fix_libgui_vendor_shims
 from coral_system import prepare_coral_system
 
@@ -91,6 +92,7 @@ def prepare(device, offline):
 
     for project, patch in pending:
         subprocess.run(["git", "-C", project, "apply", patch], check=True)
+    fix_qcom_mountpoint_rules(Path.cwd())
     if device == "coral":
         fix_qcom_common_namespaces(Path.cwd())
         fix_libgui_vendor_shims(Path.cwd())
