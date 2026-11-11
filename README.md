@@ -33,6 +33,11 @@ recipes between Qualcomm's `AndroidBoardCommon.mk` and PenguinOS's
 plus other mount targets actually owned by synced Qualcomm rules. It does not
 disable Qualcomm's firmware mountpoints or modify runtime fstab configuration.
 
+The same preparation step also guards Qualcomm's explicit root `/persist`
+rule when the Floral board configuration already provides
+`/mnt/vendor/persist:/persist` through PenguinOS's rootdir symlink rules.
+This prevents duplicate Ninja outputs without removing the runtime symlink.
+
 It is safe to rerun and also replaces an earlier local-only three-directory
 workaround. After updating the local manifest, simply run the normal build
 helper again; no clean build is required solely for this make-rule fix.
