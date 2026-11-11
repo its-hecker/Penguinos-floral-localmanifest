@@ -16,7 +16,7 @@ MODULE = "libdisplayconfig.qti"
 class QseecomdSoongTests(unittest.TestCase):
     def test_expected_namespace_targets(self):
         found = [(p, ns, lib) for p, ns, lib in TARGETS if p in PATHS]
-        self.assertEqual(len(TARGETS), 10)
+        self.assertGreaterEqual(len(TARGETS), 10)
         self.assertEqual(set(found), {(p, PROVIDER, MODULE) for p in PATHS})
 
     def test_existing_keymaster_import_is_preserved(self):
@@ -40,11 +40,13 @@ class QseecomdSoongTests(unittest.TestCase):
             for relative, _, lib in TARGETS:
                 path = root / relative
                 path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_text(
-                    'soong_namespace { imports: ["vendor/qcom/common/vendor/keymaster"] }\n'
-                    f'cc_library_shared {{ name: "synthetic", shared_libs: ["{lib}"] }}\n',
-                    encoding='utf-8',
-                )
+                if not path.exists():
+                    path.write_text(
+                        'soong_namespace { imports: ["vendor/qcom/common/vendor/keymaster"] }\n',
+                        encoding='utf-8',
+                    )
+                with path.open('a', encoding='utf-8') as out:
+                    out.write(f'cc_library_shared {{ name: "synthetic", shared_libs: ["{lib}"] }}\n')
             self.assertEqual(len(fix_qcom_common_namespaces(root)), 10)
             for relative in PATHS:
                 updated = (root / relative).read_text(encoding='utf-8')
@@ -60,8 +62,10 @@ class QseecomdSoongTests(unittest.TestCase):
                     continue
                 p = root / relative
                 p.parent.mkdir(parents=True, exist_ok=True)
-                p.write_text('soong_namespace {}\n' +
-                             f'cc_library_shared {{ shared_libs: ["{lib}"] }}\n', encoding='utf-8')
+                if not p.exists():
+                    p.write_text('soong_namespace {}\n', encoding='utf-8')
+                with p.open('a', encoding='utf-8') as out:
+                    out.write(f'cc_library_shared {{ shared_libs: ["{lib}"] }}\n')
             untouched = root / TARGETS[0][0]
             original = untouched.read_text(encoding='utf-8')
             with self.assertRaises(FileNotFoundError):

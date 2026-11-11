@@ -30,6 +30,8 @@ TARGETS = (
      "vendor/qcom/opensource/display", "libdisplayconfig.qti"),
     (Path("vendor/qcom/common/vendor/qseecomd/Android.bp"),
      "vendor/qcom/opensource/display", "libdisplayconfig.qti"),
+    (Path("vendor/qcom/common/vendor/display/5.15/Android.bp"),
+     "vendor/qcom/common/vendor/display/4.14", "libsdedrm"),
 )
 
 # Soong namespaces are defined by their containing directory. A plain
@@ -71,28 +73,35 @@ def add_import(text: str, namespace: str, module_name: str) -> tuple[str, bool]:
 
 
 def fix_qcom_common_namespaces(root: Path) -> list[Path]:
-    """Make guarded, idempotent edits to synced vendor/qcom/common sources."""
+    """Validate all imports first; then update each unique Android.bp once.
+
+    The 5.15 display Android.bp needs both libdisplaydebug and libsdedrm,
+    so we must apply edits to the staged text instead of re-reading the file.
+    """
     root = Path(root)
-    planned = []
+    originals: dict[Path, str] = {}
+    staged: dict[Path, str] = {}
     for relative, target_namespace, module in TARGETS:
         destination = root / relative
-        if not destination.is_file():
-            raise FileNotFoundError(
-                f"{destination}: required PenguinOS vendor/qcom/common Android.bp "
-                "not present. Ensure repo sync finished successfully."
-            )
-        original = destination.read_text(encoding="utf-8")
+        if destination not in originals:
+            if not destination.is_file():
+                raise FileNotFoundError(
+                    f"{destination}: required PenguinOS vendor/qcom/common Android.bp "
+                    "not present. Ensure repo sync finished successfully."
+                )
+            originals[destination] = destination.read_text(encoding="utf-8")
+            staged[destination] = originals[destination]
         try:
-            updated, changed = add_import(original, target_namespace, module)
+            updated, _ = add_import(staged[destination], target_namespace, module)
         except ValueError as exc:
             raise ValueError(f"{destination}: {exc}") from exc
-        if changed:
-            planned.append((destination, updated))
+        staged[destination] = updated
 
-    # Validate every target before mutating any of them.
-    for path, updated in planned:
-        path.write_text(updated, encoding="utf-8")
+    # No writes unless EVERY dependency was validated. Write a file only once.
+    changed_paths = [p for p in staged if staged[p] != originals[p]]
+    for path in changed_paths:
+        path.write_text(staged[path], encoding="utf-8")
         print(f"PenguinOS Coral Soong namespace: imported dependency in {path}")
-    if not planned:
+    if not changed_paths:
         print("PenguinOS Coral Soong namespaces: already configured")
-    return [path for path, _ in planned]
+    return changed_paths

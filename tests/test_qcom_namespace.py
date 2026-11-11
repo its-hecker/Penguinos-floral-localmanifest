@@ -44,9 +44,12 @@ class QcomNamespaceTests(unittest.TestCase):
             for relative, _, lib in TARGETS:
                 p = root / relative
                 p.parent.mkdir(parents=True, exist_ok=True)
-                p.write_text(f'soong_namespace {{\n}}\ncc_library {{ shared_libs: ["{lib}"], }}\n')
+                if not p.exists():
+                    p.write_text('soong_namespace {\n}\n')
+                with p.open('a', encoding='utf-8') as out:
+                    out.write(f'cc_library {{ shared_libs: ["{lib}"], }}\n')
             altered = fix_qcom_common_namespaces(root)
-            self.assertEqual(len(altered), len(TARGETS))
+            self.assertEqual(len(altered), len({path for path, _, _ in TARGETS}))
             self.assertEqual(fix_qcom_common_namespaces(root), [])
             # Reject drift before changing any file.
             broken = root / TARGETS[-1][0]

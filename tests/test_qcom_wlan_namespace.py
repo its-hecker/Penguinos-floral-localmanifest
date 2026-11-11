@@ -45,14 +45,13 @@ class WlanNamespaceTests(unittest.TestCase):
             for path, _, module in TARGETS:
                 target = root / path
                 target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_text(
-                    f'soong_namespace {{}}\n'
-                    f'cc_binary {{ shared_libs: ["{module}"], }}\n',
-                    encoding="utf-8",
-                )
+                if not target.exists():
+                    target.write_text('soong_namespace {}\n', encoding='utf-8')
+                with target.open('a', encoding='utf-8') as out:
+                    out.write(f'cc_binary {{ shared_libs: ["{module}"], }}\n')
 
             changed = fix_qcom_common_namespaces(root)
-            self.assertEqual(len(changed), len(TARGETS))
+            self.assertEqual(len(changed), len({p for p, _, _ in TARGETS}))
             for relative in WLAN:
                 self.assertIn(
                     '"hardware/qcom/wlan/legacy"',
@@ -68,10 +67,10 @@ class WlanNamespaceTests(unittest.TestCase):
                     continue
                 p = root / relative
                 p.parent.mkdir(parents=True, exist_ok=True)
-                p.write_text(
-                    f'soong_namespace {{}}\ncc_binary {{shared_libs: ["{module}"]}}',
-                    encoding="utf-8",
-                )
+                if not p.exists():
+                    p.write_text('soong_namespace {}\n', encoding='utf-8')
+                with p.open('a', encoding='utf-8') as out:
+                    out.write(f'cc_binary {{shared_libs: ["{module}"]}}\n')
             first = root / TARGETS[0][0]
             before = first.read_text(encoding="utf-8")
             with self.assertRaises(FileNotFoundError):
