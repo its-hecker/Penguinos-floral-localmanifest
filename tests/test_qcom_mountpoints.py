@@ -42,7 +42,7 @@ LEGACY = (
 
 
 class MountpointRulesTest(unittest.TestCase):
-    def test_discovers_all_vendor_mounts_and_product(self):
+    def test_discovers_vendor_product_and_root_mounts(self):
         names = qualcomm_targets(QCOM)
         self.assertEqual(names, {
             "$(TARGET_OUT_VENDOR)/firmware_mnt",
@@ -50,12 +50,14 @@ class MountpointRulesTest(unittest.TestCase):
             "$(TARGET_OUT_VENDOR)/dsp",
             "$(TARGET_OUT_VENDOR)/soccp_firmware",
             "$(TARGET_OUT_PRODUCT)/vm-system",
+            "$(TARGET_ROOT_OUT)/persist",
         })
 
     def test_updates_pristine_rule_and_is_idempotent(self):
         fixed = transform(MKDIR, qualcomm_targets(QCOM))
         self.assertIn("$(TARGET_OUT_VENDOR)/soccp_firmware", fixed)
         self.assertIn("$(TARGET_OUT_VENDOR)/firmware_mnt", fixed)
+        self.assertIn("$(TARGET_ROOT_OUT)/persist", fixed)
         self.assertIn("$(filter coral flame,$(TARGET_DEVICE))", fixed)
         self.assertEqual(fixed.count(RECIPE), 1)
         self.assertEqual(fixed, transform(fixed, qualcomm_targets(QCOM)))
@@ -65,6 +67,17 @@ class MountpointRulesTest(unittest.TestCase):
         fixed = transform(MKDIR.replace(RECIPE, LEGACY), qualcomm_targets(QCOM))
         self.assertEqual(fixed.count(RECIPE), 1)
         self.assertIn("$(TARGET_OUT_VENDOR)/soccp_firmware", fixed)
+        self.assertIn("$(TARGET_ROOT_OUT)/persist", fixed)
+        self.assertEqual(fixed, transform(fixed, qualcomm_targets(QCOM)))
+
+    def test_upgrades_existing_vendor_only_compatibility(self):
+        first = transform(MKDIR, {
+            "$(TARGET_OUT_VENDOR)/firmware_mnt",
+            "$(TARGET_OUT_VENDOR)/soccp_firmware",
+        })
+        fixed = transform(first, qualcomm_targets(QCOM))
+        self.assertIn("$(TARGET_ROOT_OUT)/persist", fixed)
+        self.assertEqual(fixed.count(RECIPE), 1)
         self.assertEqual(fixed, transform(fixed, qualcomm_targets(QCOM)))
 
     def test_fails_closed_when_upstream_rule_is_unexpected(self):
@@ -85,6 +98,7 @@ class MountpointRulesTest(unittest.TestCase):
             self.assertEqual(fix_qcom_mountpoint_rules(base), [mkdir])
             self.assertEqual(fix_qcom_mountpoint_rules(base), [])
             self.assertIn("soccp_firmware", mkdir.read_text())
+            self.assertIn("$(TARGET_ROOT_OUT)/persist", mkdir.read_text())
 
 
 if __name__ == "__main__":
