@@ -23,3 +23,22 @@ bash .repo/local_manifests/build.sh coral -g
 
 The build helper runs the hardware preparation before invoking PenguinOS's
 build script. Use `-l` to select the upstream vanilla build option.
+
+### Qualcomm firmware mountpoint make-rule compatibility
+
+The preparation step automatically reconciles duplicate directory creation
+recipes between Qualcomm's `AndroidBoardCommon.mk` and PenguinOS's
+`vendor/aospa/build/core/mkdir.mk`. This handles `firmware_mnt`,
+`soccp_firmware`, `bt_firmware`, `dsp`, and other mount directories actually
+owned by the synced Qualcomm rules without disabling Qualcomm's firmware
+mountpoints or changing runtime fstab configuration.
+
+It is safe to rerun and also replaces an earlier local-only three-directory
+workaround. After updating the local manifest, simply run the normal build
+helper again; no clean build is required solely for this make-rule fix.
+
+```bash
+cd ~/penguinos-coral
+git -C .repo/local_manifests pull --ff-only origin main
+bash .repo/local_manifests/build.sh coral -g
+```
