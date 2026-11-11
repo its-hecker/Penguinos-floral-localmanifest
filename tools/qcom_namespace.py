@@ -42,6 +42,20 @@ TARGETS = (
      "vendor/qcom/opensource/display", "libgralloc.qti"),
     (Path("vendor/qcom/common/vendor/adreno/u/Android.bp"),
      "vendor/qcom/opensource/display", "libgralloc.qti"),
+    (Path("vendor/qcom/common/vendor/media/5.4/Android.bp"),
+     "hardware/qcom/sm8150/display", "libgrallocutils"),
+    (Path("vendor/qcom/common/vendor/media/5.4/Android.bp"),
+     "vendor/qcom/opensource/display", "libgralloc.qti"),
+    (Path("vendor/qcom/common/vendor/media/5.4/Android.bp"),
+     "vendor/qcom/opensource/display", "libdisplayconfig.qti"),
+    (Path("vendor/qcom/common/vendor/media/5.10/Android.bp"),
+     "vendor/qcom/opensource/display", "libqdMetaData"),
+    (Path("vendor/qcom/common/vendor/media/5.10/Android.bp"),
+     "hardware/qcom/sm8150/display", "libgrallocutils"),
+    (Path("vendor/qcom/common/vendor/media/5.10/Android.bp"),
+     "vendor/qcom/opensource/display", "libgralloc.qti"),
+    (Path("vendor/qcom/common/vendor/media/5.10/Android.bp"),
+     "vendor/qcom/opensource/display", "libdisplayconfig.qti"),
 )
 
 # Soong namespaces are defined by their containing directory. A plain
