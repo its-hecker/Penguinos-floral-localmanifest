@@ -28,6 +28,26 @@ fi
 git -C "vendor/google/$device" lfs pull
 git -C kernel/google/msm-4.14 submodule update --init --recursive
 python3 "$setup_dir/tools/prepare.py" "$device"
+# Source changes that remove VINTF modules do not always delete previously
+# installed fragments in an incremental output tree. If remnants of the old
+# Coral radio/QTI power providers remain, discard them and repackage target-files.
+# The build must still fail if either HAL is selected again by the current sources.
+if [[ "$device" == "coral" ]]; then
+    product_out="out/target/product/coral"
+    target_files="$product_out/obj/PACKAGING/target_files_intermediates/aospa_coral-target_files"
+    radio_fragment="etc/vintf/manifest/vendor.qti.hardware.radio.atcmdfwd@1.0.xml"
+    power_fragment="etc/vintf/manifest/power-v6.xml"
+    if [[ -e "$product_out/system_ext/$radio_fragment" \
+       || -e "$product_out/vendor/$power_fragment" \
+       || -e "$target_files/SYSTEM_EXT/$radio_fragment" \
+       || -e "$target_files/VENDOR/$power_fragment" ]]; then
+        echo "Cleaning stale Coral radio/Power HAL VINTF fragments from incremental output"
+        rm -f "$product_out/system_ext/$radio_fragment" "$product_out/vendor/$power_fragment"
+        rm -rf "$target_files"
+        rm -f "$product_out/aospa_coral-ota.zip" "$product_out/ota_metadata"
+    fi
+fi
+
 # Kernel headers_install is required for qti_kernel_headers when Soong only
 # has the generator dummy dependency. Verify the real headers before compiling.
 if [[ "$device" == "coral" ]]; then
