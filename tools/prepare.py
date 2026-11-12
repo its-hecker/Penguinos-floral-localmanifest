@@ -59,6 +59,7 @@ def prepare(device, offline):
         patches.extend([
             (Path("vendor/aospa"), PATCHES / "aospa-stop-on-lunch-error.patch"),
             (Path("vendor/aospa"), PATCHES / "aospa-kernel-header-config.patch"),
+            (Path("vendor/aospa"), PATCHES / "aospa-floral-health-sysfs-types.patch"),
             (Path("vendor/hecker/floral/kernel-build"), PATCHES / "pixelos-kernel-headers.patch"),
             (Path("vendor/hecker/floral/kernel-build"), PATCHES / "pixelos-kernel-generator-unsandbox.patch"),
             (Path("vendor/hecker/floral/kernel-build"), PATCHES / "pixelos-soong-shared-dep.patch"),
