@@ -1,0 +1,14 @@
+diff --git a/Android.bp b/Android.bp
+--- a/Android.bp
++++ b/Android.bp
+@@ -987,8 +987,10 @@
+ prebuilt_etc_xml {
+     name: "vendor.qti.hardware.radio.atcmdfwd@1.0.xml",
+     owner: "google",
++    // Already declared in /system/etc/vintf/manifest.xml on PenguinOS.
++    installable: false,
+     src: "proprietary/system_ext/etc/vintf/manifest/vendor.qti.hardware.radio.atcmdfwd@1.0.xml",
+     filename_from_src: true,
+     sub_dir: "vintf/manifest",
+     system_ext_specific: true,
+ }
