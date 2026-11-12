@@ -1,0 +1,21 @@
+diff --git a/Android.mk b/Android.mk
+--- a/Android.mk
++++ b/Android.mk
+@@ -1,4 +1,8 @@
+ LOCAL_PATH := $(call my-dir)
+ 
++# Coral uses the Pixel AIDL Power HAL, not Qualcomm's V6 implementation.
++# Keep the QTI service available for other devices.
++ifneq ($(TARGET_DEVICE),coral)
++
+ ifneq (,$(filter true,$(call is-vendor-board-platform,QCOM) $(TARGET_USES_QTI_POWER_HAL)))
+ 
+@@ -95,7 +99,8 @@
+ LOCAL_CFLAGS += -Wno-unused-parameter -Wno-unused-variable
+ LOCAL_VENDOR_MODULE := true
+ include $(BUILD_EXECUTABLE)
+ endif
++endif # TARGET_DEVICE != coral
+ 
+ 
+ ifeq ($(TARGET_BOARD_PLATFORM), sun)
