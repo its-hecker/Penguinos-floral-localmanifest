@@ -67,3 +67,17 @@ Bionic duplicate-type error while preserving the kernel ABI.
 
 No full source resync or clean build is needed solely for this workaround.
 The ROM build still needs to be confirmed on ServerHive.
+
+### Knowles Athletico sound-trigger UAPI headers (Coral)
+
+The `hardware/knowles/athletico/sound_trigger_hal` module uses kernel
+UAPI definitions from `linux/mfd/adnc/` (including `iaxxx-odsp.h` and
+`iaxxx-system-identifiers.h`). The upstream HAL only lists
+`device_kernel_headers`. The Coral preparation step applies
+`patches/knowles-generated-kernel-headers.patch`, adding
+`generated_kernel_headers` to its existing Soong defaults. This provides
+access to the sanitized Floral UAPI headers already installed and checked
+by `tools/kernel_uapi.py` without copying raw headers or disabling
+Knowles sound-trigger components.
+
+This compatibility patch is automatically applied on Coral builds.
