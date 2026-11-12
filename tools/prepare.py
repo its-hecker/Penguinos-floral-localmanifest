@@ -66,6 +66,7 @@ def prepare(device, offline):
             (Path("hardware/lineage/compat"), PATCHES / "lineage-compat-hidl-providers.patch"),
             # Celerity provides the Qualcomm display interfaces in Soong's global namespace.
             (Path("hardware/qcom-caf/common"), PATCHES / "qcom-caf-display-namespace.patch"),
+            (Path("hardware/knowles/athletico/sound_trigger_hal"), PATCHES / "knowles-generated-kernel-headers.patch"),
             (Path("hardware/qcom/sm8150/display"), PATCHES / "sm8150-display-namespace.patch"),
             (Path("vendor/qcom/opensource/display"), PATCHES / "qcom-display-namespace.patch"),
         ])
