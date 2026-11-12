@@ -60,8 +60,10 @@ It verifies `usr/include/drm/sde_drm.h`,
 `usr/include/drm/msm_drm_pp.h`, and
 `usr/include/media/msm_media_info.h`; the build stops immediately if
 installation silently leaves them missing despite the Soong `.dummy_dep`.
-The real kernel header-install target sanitizes these UAPI headers; no
-unprocessed kernel header files are copied into the system.
+It then runs the existing `vendor/hecker/floral/kernel-build/tools/clean_headers.sh`
+Bionic cleanup to rename the kernel's `struct sigaction` to
+`struct __kernel_sigaction` in generated signal headers, avoiding the
+Bionic duplicate-type error while preserving the kernel ABI.
 
 No full source resync or clean build is needed solely for this workaround.
 The ROM build still needs to be confirmed on ServerHive.
