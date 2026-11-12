@@ -47,3 +47,21 @@ cd ~/penguinos-coral
 git -C .repo/local_manifests pull --ff-only origin main
 bash .repo/local_manifests/build.sh coral -g
 ```
+
+### Coral Qualcomm display kernel UAPI headers
+
+`build.sh coral` now invokes `tools/kernel_uapi.py` after the usual source
+preparation and before `rom-build.sh`. This runs the Floral kernel's
+`headers_install` target into the same
+`out/soong/.intermediates/vendor/hecker/floral/kernel-build/build/soong/generated_kernel_includes/gen`
+path consumed by `qti_kernel_headers` in the SM8150 display modules.
+
+It verifies `usr/include/drm/sde_drm.h`,
+`usr/include/drm/msm_drm_pp.h`, and
+`usr/include/media/msm_media_info.h`; the build stops immediately if
+installation silently leaves them missing despite the Soong `.dummy_dep`.
+The real kernel header-install target sanitizes these UAPI headers; no
+unprocessed kernel header files are copied into the system.
+
+No full source resync or clean build is needed solely for this workaround.
+The ROM build still needs to be confirmed on ServerHive.
