@@ -3,9 +3,9 @@
 """Install Floral's sanitized UAPI headers before Soong/RBE compilation.
 
 The PixelOS lineage_generator's .dummy_dep can exist while the actual
-kernel headers_install output tree is missing. Use the kernel's own
-headers_install target and fail closed if the required display headers
-are not present. No raw/unsanitized header copies are used.
+kernel headers_install output tree is missing. Install the kernel UAPI
+headers, run the existing Bionic header cleanup, and fail closed if the
+required display headers or Bionic-safe signal types are missing.
 """
 
 import os
@@ -55,7 +55,31 @@ def install_headers(root: Path, out_dir: str | None = None) -> Path:
         raise RuntimeError(
             "Floral UAPI header installation incomplete: " + ", ".join(missing)
         )
-    print("PenguinOS: verified display DRM and media UAPI headers", flush=True)
+    cleaner = root / "vendor/hecker/floral/kernel-build/tools/clean_headers.sh"
+    if not cleaner.is_file():
+        raise FileNotFoundError(f"Missing PixelOS/Bionic kernel header cleaner: {cleaner}")
+    print("PenguinOS: applying Bionic-compatible kernel signal-header cleanup", flush=True)
+    subprocess.run(
+        ["bash", str(cleaner), str(generator_dir)],
+        cwd=root,
+        check=True,
+    )
+
+    # Qualcomm's generated asm-generic/signal.h must not redefine Bionic's
+    # public struct sigaction. Bionic's kernel-header cleanup renames it to
+    # __kernel_sigaction, keeping the original kernel ABI type available.
+    signal_header = generator_dir / "usr/include/asm-generic/signal.h"
+    if not signal_header.is_file():
+        raise RuntimeError(f"Cleaned kernel signal header is missing: {signal_header}")
+    signal_source = signal_header.read_text(encoding="utf-8")
+    import re
+    if (re.search(r"\\bstruct\\s+sigaction\\b", signal_source)
+            or not re.search(r"\\bstruct\\s+__kernel_sigaction\\b", signal_source)):
+        raise RuntimeError(
+            "Bionic kernel signal-header cleanup did not rename struct sigaction"
+        )
+
+    print("PenguinOS: verified display headers and Bionic-safe kernel signal types", flush=True)
     return generator_dir
 
 
