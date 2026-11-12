@@ -57,6 +57,7 @@ def prepare(device, offline):
                (Path("device/qcom/kernelscripts"), PATCHES / "legacy-kernel-task.patch")]
     if device == "coral":
         patches.extend([
+            (Path("vendor/qcom/opensource/power"), PATCHES / "qcom-power-coral-pixel-hal.patch"),
             (Path("vendor/aospa"), PATCHES / "aospa-stop-on-lunch-error.patch"),
             (Path("vendor/aospa"), PATCHES / "aospa-kernel-header-config.patch"),
             (Path("vendor/aospa"), PATCHES / "aospa-floral-health-sysfs-types.patch"),
