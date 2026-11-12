@@ -17,5 +17,10 @@ setup_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 git -C "vendor/google/$device" lfs pull
 git -C kernel/google/msm-4.14 submodule update --init --recursive
 python3 "$setup_dir/tools/prepare.py" "$device"
+# Kernel headers_install is required for qti_kernel_headers when Soong only
+# has the generator dummy dependency. Verify the real headers before compiling.
+if [[ "$device" == "coral" ]]; then
+    python3 "$setup_dir/tools/kernel_uapi.py"
+fi
 
 exec bash ./rom-build.sh "$device" "$@"
