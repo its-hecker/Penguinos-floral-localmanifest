@@ -1,0 +1,10 @@
+diff --git a/Android.bp b/Android.bp
+--- a/Android.bp
++++ b/Android.bp
+@@ -47,5 +47,5 @@
+ use_sound_trigger_hal_cc_defaults {
+     name: "use_sound_trigger_hal_defaults",
+-    header_libs: ["device_kernel_headers"],
++    header_libs: ["device_kernel_headers", "generated_kernel_headers"],
+     soong_config_variables: {
+         use_sound_trigger_hal: {
