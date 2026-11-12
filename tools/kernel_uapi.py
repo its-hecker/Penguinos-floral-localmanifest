@@ -9,6 +9,7 @@ required display headers or Bionic-safe signal types are missing.
 """
 
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -72,9 +73,8 @@ def install_headers(root: Path, out_dir: str | None = None) -> Path:
     if not signal_header.is_file():
         raise RuntimeError(f"Cleaned kernel signal header is missing: {signal_header}")
     signal_source = signal_header.read_text(encoding="utf-8")
-    import re
-    if (re.search(r"\\bstruct\\s+sigaction\\b", signal_source)
-            or not re.search(r"\\bstruct\\s+__kernel_sigaction\\b", signal_source)):
+    if (re.search(r"\bstruct\s+sigaction\b", signal_source)
+            or not re.search(r"\bstruct\s+__kernel_sigaction\b", signal_source)):
         raise RuntimeError(
             "Bionic kernel signal-header cleanup did not rename struct sigaction"
         )
