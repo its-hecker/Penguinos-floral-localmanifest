@@ -14,7 +14,7 @@
   <remove-project path="vendor/hecker/floral/faceid" optional="true" />
 
   <project path="device/google/coral" name="its-hecker/penguinos-floral-dt"
-           remote="floral-github" revision="be38da374c1abc0cb9db5daed93130d599f7d056" upstream="refs/heads/main" />
+           remote="floral-github" revision="8c3a79ba0edb7cb33cbf60432f0612ec63b9f9c0" upstream="refs/heads/main" />
   <project path="vendor/google/coral" name="its-hecker/pixelos_proprietary_vendor_google_coral"
            remote="floral-github" revision="0684137113420155d238424f1695a2393ae3143d" upstream="refs/heads/penguinos" />
 
