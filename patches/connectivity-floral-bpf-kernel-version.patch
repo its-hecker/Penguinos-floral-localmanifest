@@ -26,7 +26,7 @@ index add20c5..1ee34f0 100644
  #include <sys/utsname.h>
 
  namespace android {
-@@ -34,7 +35,10 @@ static inline unsigned uncachedKernelVersion() {
+@@ -34,6 +35,9 @@ static inline unsigned uncachedKernelVersion() {
      unsigned kver_major = 0;
      unsigned kver_minor = 0;
      unsigned kver_sub = 0;
@@ -37,4 +37,3 @@ index add20c5..1ee34f0 100644
 +               &kver_major, &kver_minor, &kver_sub) < 2) abort();
      return KVER(kver_major, kver_minor, kver_sub);
  }
-
