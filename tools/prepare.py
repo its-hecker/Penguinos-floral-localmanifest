@@ -57,6 +57,8 @@ def prepare(device, offline):
                (Path("device/qcom/kernelscripts"), PATCHES / "legacy-kernel-task.patch")]
     if device == "coral":
         patches.extend([
+            # The networking loader needs the BPF compatibility level of Coral's backported kernel.
+            (Path("packages/modules/Connectivity"), PATCHES / "connectivity-floral-bpf-kernel-version.patch"),
             (Path("vendor/google/coral"), PATCHES / "coral-radio-vintf-single-owner.patch"),
             (Path("vendor/qcom/opensource/power"), PATCHES / "qcom-power-coral-pixel-hal.patch"),
             (Path("vendor/aospa"), PATCHES / "aospa-stop-on-lunch-error.patch"),

@@ -45,6 +45,8 @@
            upstream="refs/heads/main" dest-branch="main" />
 
   <!-- Pin the sources touched by the guarded build preparation patches. -->
+  <extend-project name="Project-PenguinOS/packages_modules_Connectivity" path="packages/modules/Connectivity"
+                  revision="e82e8ff323a000761828e7ca7d62abc50971f149" upstream="refs/heads/celerity" />
   <extend-project name="Project-PenguinOS/android_vendor_aospa" path="vendor/aospa"
                   revision="22f5b7fa813b4f9360b5abe37efd5238bc49e495" upstream="refs/heads/celerity" />
   <extend-project name="AOSPA/android_kernel_build" path="device/qcom/kernelscripts"
