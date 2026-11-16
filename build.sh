@@ -8,6 +8,26 @@ case "$device" in
     *) echo 'Usage: bash .repo/local_manifests/build.sh coral|flame [rom-build options]' >&2; exit 2 ;;
 esac
 
+if [[ -n "${PENGUIN_CORAL_ADB_PUBKEY:-}" ]]; then
+    if [[ "$device" != "coral" ]]; then
+        echo 'PENGUIN_CORAL_ADB_PUBKEY is only supported for Coral.' >&2
+        exit 2
+    fi
+    python3 - "$PENGUIN_CORAL_ADB_PUBKEY" <<'PY'
+import base64
+from pathlib import Path
+import sys
+
+try:
+    line, = Path(sys.argv[1]).read_bytes().splitlines()
+    key = base64.b64decode(line.split(maxsplit=1)[0], validate=True)
+    if len(key) != 524 or int.from_bytes(key[:4], "little") != 64:
+        raise ValueError
+except (IndexError, OSError, ValueError):
+    sys.exit("PENGUIN_CORAL_ADB_PUBKEY must point to the host's Android adbkey.pub.")
+PY
+fi
+
 if [[ ! -f "device/google/coral/aospa_$device.mk" || ! -f rom-build.sh ]]; then
     echo "Run repo sync with the $device manifest, then run this script from the ROM source root." >&2
     exit 1

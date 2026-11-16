@@ -14,7 +14,8 @@
   <remove-project path="vendor/hecker/floral/faceid" optional="true" />
 
   <project path="device/google/coral" name="its-hecker/penguinos-floral-dt"
-           remote="floral-github" revision="6680d61c063bd0740774c4a257329e09540f71a3" upstream="refs/heads/main" />
+           remote="floral-github" revision="25b56f3cf200a3374a9fa0c3baea469a47a1781d"
+           upstream="refs/heads/fix/coral-early-adb-20261116" />
   <project path="vendor/google/coral" name="its-hecker/pixelos_proprietary_vendor_google_coral"
            remote="floral-github" revision="0684137113420155d238424f1695a2393ae3143d" upstream="refs/heads/penguinos" />
 

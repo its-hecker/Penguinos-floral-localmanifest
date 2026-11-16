@@ -5,10 +5,9 @@ It uses the PixelOS device tree and vendor, the Floral 4.14 KernelSU Next
 kernel, Lunaris Dolby, hardware 3D Face ID, Motion Sense, Active Edge, and
 the signed Google Camera split set.
 
-The first compile and phone validation are pending. The pinned device-tree
-commit must be present on the `main` branch of
-[penguinos-floral-dt](https://github.com/its-hecker/penguinos-floral-dt)
-before the initial sync.
+This branch includes the Coral BPF compatibility patch and pins the early
+ADB changes in [penguinos-floral-dt](https://github.com/its-hecker/penguinos-floral-dt).
+The diagnostic image needs a ServerHive build and a phone test.
 
 From a fresh ServerHive checkout:
 
@@ -16,13 +15,27 @@ From a fresh ServerHive checkout:
 mkdir -p ~/penguinos-coral
 cd ~/penguinos-coral
 repo init -u https://github.com/Project-PenguinOS/manifest.git -b celerity --git-lfs
-git clone -b main https://github.com/its-hecker/Penguinos-floral-localmanifest.git .repo/local_manifests
+git clone -b fix/coral-early-adb-20261116 https://github.com/its-hecker/Penguinos-floral-localmanifest.git .repo/local_manifests
 repo sync -c --fail-fast --no-clone-bundle --no-tags -j4
 bash .repo/local_manifests/build.sh coral -g
 ```
 
 The build helper runs the hardware preparation before invoking PenguinOS's
 build script. Use `-l` to select the upstream vanilla build option.
+
+### Coral boot diagnostics
+
+Set `PENGUIN_CORAL_ADB_PUBKEY` to the path of your development host's
+`adbkey.pub` to build a private `userdebug` image with early USB ADB.
+Use a path relative to the Android checkout. The build embeds the public key
+and uses Android's ADB authentication. The matching host can connect during
+`post-fs-data`, once the ADB APEX and USB gadget are available. From that host,
+`adb root` requests a root shell and `adb logcat -b all` captures the boot log.
+
+```bash
+PENGUIN_CORAL_ADB_PUBKEY=vendor/hecker/floral/diagnostics/adbkey.pub \
+  bash .repo/local_manifests/build.sh coral -g
+```
 
 ### Qualcomm firmware mountpoint make-rule compatibility
 
