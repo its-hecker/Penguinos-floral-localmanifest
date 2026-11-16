@@ -25,16 +25,14 @@ build script. Use `-l` to select the upstream vanilla build option.
 
 ### Coral boot diagnostics
 
-Set `PENGUIN_CORAL_ADB_PUBKEY` to the path of your development host's
-`adbkey.pub` to build a private `userdebug` image with early USB ADB.
-Use a path relative to the Android checkout. The build embeds the public key
-and uses Android's ADB authentication. The matching host can connect during
-`post-fs-data`, once the ADB APEX and USB gadget are available. From that host,
+The private Coral `userdebug` build accepts ADB from any connected USB
+computer without an authorization prompt, as in HeckerOS. The USB gadget
+starts during `post-fs-data`, once Android has activated the ADB APEX.
 `adb root` requests a root shell and `adb logcat -b all` captures the boot log.
 
 ```bash
-PENGUIN_CORAL_ADB_PUBKEY=vendor/hecker/floral/diagnostics/adbkey.pub \
-  bash .repo/local_manifests/build.sh coral -g
+env -u PENGUIN_CORAL_ADB_PUBKEY OUT_DIR=out PENGUIN_DEV_USB_ADB=true \
+  bash .repo/local_manifests/build.sh coral -t userdebug -g
 ```
 
 ### Qualcomm firmware mountpoint make-rule compatibility

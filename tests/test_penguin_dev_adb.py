@@ -13,19 +13,22 @@ import unittest
 FRAGMENT = Path("device/google/coral/debugging/development_adb.mk")
 CORAL = Path("device/google/coral/aospa_coral.mk")
 FLAME = Path("device/google/coral/aospa_flame.mk")
+EARLY_ADB = "ro.vendor.penguinos.coral_early_adb"
 
 
 class PenguinDevelopmentAdbTest(unittest.TestCase):
-    def evaluate(self, variant, mode=None, inherited=()):
+    def evaluate(self, variant, mode=None, inherited=(), product="aospa_coral"):
         source = "PRODUCT_PRODUCT_PROPERTIES := " + " ".join(inherited) + "\n"
         source += "include " + str(FRAGMENT) + "\n"
-        source += 'all:\n\t@printf "%s\\n" $(PRODUCT_PRODUCT_PROPERTIES)\n'
+        source += 'all:\n\t@printf "%s\\n" $(PRODUCT_PRODUCT_PROPERTIES) $(PRODUCT_VENDOR_PROPERTIES)\n'
         env = os.environ.copy()
         env.pop("PENGUIN_DEV_USB_ADB", None)
+        env.pop("PENGUIN_CORAL_ADB_PUBKEY", None)
         if mode is not None:
             env["PENGUIN_DEV_USB_ADB"] = mode
         return subprocess.run(
-            ["make", "--no-print-directory", "-f", "-", "TARGET_BUILD_VARIANT=" + variant],
+            ["make", "--no-print-directory", "-f", "-",
+             "TARGET_BUILD_VARIANT=" + variant, "TARGET_PRODUCT=" + product],
             input=source, env=env, text=True, capture_output=True,
         )
 
@@ -34,7 +37,7 @@ class PenguinDevelopmentAdbTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         items = result.stdout.splitlines()
         props = dict(item.split("=", 1) for item in items)
-        self.assertEqual(len(items), len(props), "Duplicate product property assignments")
+        self.assertEqual(len(items), len(props), "Duplicate property assignments")
         return props
 
     def test_userdebug_and_eng_enable_usb_without_pc_prompt(self):
@@ -44,6 +47,7 @@ class PenguinDevelopmentAdbTest(unittest.TestCase):
                 self.assertEqual(props["ro.penguinos.dev_usb_adb"], "1")
                 self.assertEqual(props["ro.adb.secure"], "0")
                 self.assertEqual(props["persist.sys.usb.config"], "adb")
+                self.assertEqual(props[EARLY_ADB], "true")
                 self.assertNotIn("ro.secure", props)
                 self.assertNotIn("service.adb.tcp.port", props)
 
@@ -54,6 +58,13 @@ class PenguinDevelopmentAdbTest(unittest.TestCase):
                 self.assertEqual(props["ro.penguinos.dev_usb_adb"], "0")
                 self.assertEqual(props["ro.adb.secure"], "1")
                 self.assertEqual(props["persist.sys.usb.config"], "mtp")
+                self.assertNotIn(EARLY_ADB, props)
+
+    def test_early_adb_is_specific_to_coral(self):
+        result = self.evaluate("userdebug", product="aospa_flame")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("ro.adb.secure=0", result.stdout)
+        self.assertNotIn(EARLY_ADB, result.stdout)
 
     def test_user_build_is_secure_and_rejects_unrestricted_adb(self):
         props = self.values("user")
