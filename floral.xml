@@ -14,7 +14,7 @@
   <remove-project path="vendor/hecker/floral/faceid" optional="true" />
 
   <project path="device/google/coral" name="its-hecker/penguinos-floral-dt"
-           remote="floral-github" revision="f6986a6682bd8260532fbe6775bb3d3adb2e775e"
+           remote="floral-github" revision="5e1e721385d21da11d544b560d390639ce9d6948"
            upstream="refs/heads/fix/coral-stock-ab-20261117" />
   <project path="vendor/google/coral" name="its-hecker/pixelos_proprietary_vendor_google_coral"
            remote="floral-github" revision="0684137113420155d238424f1695a2393ae3143d" upstream="refs/heads/penguinos" />
@@ -52,6 +52,30 @@
                   revision="22f5b7fa813b4f9360b5abe37efd5238bc49e495" upstream="refs/heads/celerity" />
   <extend-project name="AOSPA/android_kernel_build" path="device/qcom/kernelscripts"
                   revision="949c19886fc23249399b73256a41f436823df8f9" upstream="refs/heads/calcite" />
+
+  <!-- Keep the audited Celerity boot, policy and packaging stack together. -->
+  <extend-project name="Project-PenguinOS/build_make" path="build/make"
+                  revision="71a935e20c18c4a26f335409514e90be43395087" upstream="refs/heads/celerity" />
+  <extend-project name="Project-PenguinOS/build_soong" path="build/soong"
+                  revision="ab7f2af974c707e310b13f0516c61ffde9aa2abb" upstream="refs/heads/celerity" />
+  <extend-project name="Project-PenguinOS/android_build_release" path="build/release"
+                  revision="e763dddad9433f44dddfce0ab28d8601e34141b8" upstream="refs/heads/celerity" />
+  <extend-project name="Project-PenguinOS/system_core" path="system/core"
+                  revision="61d7190d3b7fa92d51ff934f4e26fa7576f6311e" upstream="refs/heads/celerity" />
+  <extend-project name="Project-PenguinOS/system_fs_fs_mgr" path="system/fs/fs_mgr"
+                  revision="e3eb65b9e6df50921894e6d1234b5cd1b7a0639b" upstream="refs/heads/celerity" />
+  <extend-project name="Project-PenguinOS/system_sepolicy" path="system/sepolicy"
+                  revision="a0fddabfecfa89d08c60f4ef8ca3940ba73e5c29" upstream="refs/heads/celerity" />
+  <extend-project name="Project-PenguinOS/system_security" path="system/security"
+                  revision="4a467c1d678167f095803897aa7cb5e7fa33240f" upstream="refs/heads/celerity" />
+  <extend-project name="AOSPA/android_system_bpf" path="system/bpf"
+                  revision="3960aa2c5fcb2d1b41d93dabba2f4a284dfa6e22" upstream="refs/heads/calcite" />
+  <extend-project name="Project-PenguinOS/bootable_recovery" path="bootable/recovery"
+                  revision="8668912186ec7479768fae11ca289ec01326d72a" upstream="refs/heads/celerity" />
+  <extend-project name="Project-PenguinOS/system_update_engine" path="system/update_engine"
+                  revision="bbe61d49ba24a213b9c18083c8235be804ffbd28" upstream="refs/heads/celerity" />
+  <extend-project name="Project-PenguinOS/device_qcom_common" path="device/qcom/common"
+                  revision="499c4e14306260ecae8b359cba192d0d0cb7178c" upstream="refs/heads/celerity" />
 
   <!-- Keep the PixelOS versions of the legacy hardware modules used by Floral. -->
   <remove-project path="hardware/lineage/compat" optional="true" />

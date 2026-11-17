@@ -9,6 +9,9 @@ This branch uses Coral's stock 9,755,951,104-byte `super` geometry and regular
 A/B updates. Celerity requires userspace snapshots for Virtual A/B. The
 Floral kernel supports kernel snapshots. The first boot test builds the vanilla
 product to fit the stock slot and retains the Floral device integrations.
+Coral uses default ext4 sizing and skips the PixelOS space reserve for
+separately installed Google Apps. The manifest pins the Celerity init, mount,
+SELinux, BPF, recovery and OTA sources together with the device, vendor and kernel.
 
 From a fresh ServerHive checkout:
 
@@ -39,8 +42,11 @@ unzip -oj "$product_out/obj/PACKAGING/target_files_intermediates/aospa_coral-tar
 
 Use the images in `out/target/product/coral/install` and sideload
 `out/target/product/coral/aospa_coral-ota.zip` through the PenguinOS recovery
-from that build. System startup still needs a phone test. Recovery ADB can
-read the diagnostic files from `/metadata/pixelos-boot-debug` if Android init
+from that build. The verification step checks the unpacked sizes of the four
+logical partition images, the boot and DTBO structure, the Citadel Keymaster
+binaries and their crypto library, and the first-stage fstab and OTA metadata.
+System startup still needs a phone test. Recovery ADB can read diagnostic files
+from `/metadata/pixelos-boot-debug` after mounting Metadata if Android init
 reaches the capture service.
 
 ### Qualcomm firmware mountpoint make-rule compatibility
