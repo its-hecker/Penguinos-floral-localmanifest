@@ -5,8 +5,8 @@
 # Optional: ADB=/full/path/to/adb bash collect_penguin_boot.sh
 set -u
 
-adb_bin="$ADB"
-if [[ -z "$adb_bin" ]]; then adb_bin=adb; fi
+adb_bin=adb
+if [[ -n "$(printenv ADB 2>/dev/null)" ]]; then adb_bin="$(printenv ADB)"; fi
 if ! command -v "$adb_bin" >/dev/null 2>&1; then
   echo "ADB not found. Install Android platform-tools or set ADB=/path/to/adb" >&2
   exit 1
