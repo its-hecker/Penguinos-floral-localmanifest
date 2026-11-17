@@ -129,6 +129,18 @@ def verify(product_out, debug_adb):
             check("init.svc_debug.no_fatal.zygote true" in hold_rc and
                   "persist.sys.disable_rescue true" in hold_rc,
                   "Bootloop hold service is incomplete")
+            check("setprop service.adb.root 1" in hold_rc and
+                  "setprop sys.usb.config adb" in hold_rc,
+                  "Private diagnostic ADB is not configured for root and USB")
+            capture_rc = (target / "SYSTEM/etc/init/pixelos-boot-capture.rc").read_text(
+                encoding="utf-8")
+            check("PENGUIN_BOOT_STAGE: second-stage early-init" in capture_rc and
+                  "PENGUIN_BOOT_STAGE: post-fs" in capture_rc,
+                  "Missing early diagnostic stage breadcrumbs")
+            capture_script = target / "SYSTEM/etc/pixelos/boot_capture.sh"
+            check(capture_script.is_file() and
+                  "previous-$name" in capture_script.read_text(encoding="utf-8"),
+                  "Missing previous-attempt boot capture preservation")
             usb_rc = (target / "VENDOR/etc/init/hw/init.msmnile.usb.rc").read_text(
                 encoding="utf-8")
             check("setprop sys.usb.configfs 2" not in usb_rc and
