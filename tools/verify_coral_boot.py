@@ -123,6 +123,19 @@ def verify(product_out, debug_adb):
                   "Expected the private development ADB properties")
             check((target / "SYSTEM/etc/init/pixelos-boot-capture.rc").is_file(),
                   "Missing Coral boot capture service")
+            hold = target / "SYSTEM/etc/init/penguin-bootloop-hold.rc"
+            check(hold.is_file(), "Missing debug userspace bootloop hold service")
+            hold_rc = hold.read_text(encoding="utf-8")
+            check("init.svc_debug.no_fatal.zygote true" in hold_rc and
+                  "persist.sys.disable_rescue true" in hold_rc,
+                  "Bootloop hold service is incomplete")
+            usb_rc = (target / "VENDOR/etc/init/hw/init.msmnile.usb.rc").read_text(
+                encoding="utf-8")
+            check("setprop sys.usb.configfs 2" not in usb_rc and
+                  "setprop sys.usb.configfs 1" in usb_rc and
+                  "setprop sys.usb.config adb" in usb_rc and
+                  "on post-fs && property:ro.vendor.penguinos.coral_early_adb=true" in usb_rc,
+                  "Coral USB ADB startup is not the fixed diagnostic version")
 
         fstab = (target / "BOOT/RAMDISK/first_stage_ramdisk/fstab.sm8150").read_text(encoding="utf-8")
         mounts = {fields[1] for line in fstab.splitlines() if (fields := line.split()) and
