@@ -36,8 +36,9 @@ env -u PENGUIN_CORAL_ADB_PUBKEY OUT_DIR=out PENGUIN_DEV_USB_ADB=true \
 
 product_out=out/target/product/coral
 python3 .repo/local_manifests/tools/verify_coral_boot.py "$product_out" --debug-adb
-unzip -oj "$product_out/obj/PACKAGING/target_files_intermediates/aospa_coral-target_files.zip" \
-  IMAGES/boot.img IMAGES/dtbo.img IMAGES/vbmeta.img -d "$product_out/install"
+target_files="$product_out/obj/PACKAGING/target_files_intermediates/aospa_coral-target_files"
+mkdir -p "$product_out/install"
+cp "$target_files"/IMAGES/{boot,dtbo,vbmeta}.img "$product_out/install/"
 ```
 
 Use the images in `out/target/product/coral/install` and sideload

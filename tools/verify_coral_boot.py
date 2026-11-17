@@ -3,12 +3,13 @@
 """Check the Coral boot files and partition metadata before flashing."""
 
 import argparse
+from contextlib import ExitStack
 import hashlib
 import json
 from pathlib import Path
 import struct
 import sys
-from zipfile import BadZipFile, ZipFile
+from zipfile import BadZipFile, Path as ZipPath, ZipFile
 
 
 SLOT_BYTES = 4873781248
@@ -23,8 +24,8 @@ KEYMASTER_FILES = {
 }
 
 
-def properties(archive, entry):
-    lines = archive.read(entry).decode().splitlines()
+def properties(entry):
+    lines = entry.read_text(encoding="utf-8").splitlines()
     return dict(line.split("=", 1) for line in lines if "=" in line and not line.startswith("#"))
 
 
@@ -33,13 +34,19 @@ def check(condition, reason):
         raise ValueError(reason)
 
 
+def file_size(entry):
+    if isinstance(entry, Path):
+        return entry.stat().st_size
+    return entry.root.getinfo(entry.at).file_size
+
+
 def partition_image_size(target, name):
-    entry = f"IMAGES/{name}.img"
-    with target.open(entry) as image:
+    entry = target / f"IMAGES/{name}.img"
+    with entry.open("rb") as image:
         header = image.read(28)
     check(header, f"Empty {name} image")
     if header[:4] != b"\x3a\xff\x26\xed":
-        return target.getinfo(entry).file_size
+        return file_size(entry)
     check(len(header) == 28, f"Truncated sparse {name} image")
     block_size, blocks = struct.unpack_from("<II", header, 12)
     check(block_size > 0 and blocks > 0, f"Invalid sparse size for {name}")
@@ -50,17 +57,18 @@ def verify_keymaster(target):
     lock = json.loads(FACEID_LOCK.read_text())
     hashes = {entry["destination"]: entry["sha256"] for entry in lock["artifacts"]}
     for path, reference in KEYMASTER_FILES.items():
-        digest = hashlib.sha256(target.read(f"VENDOR/{path}")).hexdigest()
+        digest = hashlib.sha256((target / f"VENDOR/{path}").read_bytes()).hexdigest()
         check(digest == hashes[reference], f"Vendor {path} differs from the pinned Citadel build")
-    service = target.read("VENDOR/etc/init/floral-faceid-citadel.rc").decode().splitlines()
+    service = (target / "VENDOR/etc/init/floral-faceid-citadel.rc").read_text(encoding="utf-8").splitlines()
     check("    override" in service and "    user hsm" in service and "    group hsm drmrpc" in service,
           "Missing Citadel init service settings")
 
 
 def verify_boot_images(target):
-    entry = "IMAGES/boot.img"
-    check(target.getinfo(entry).file_size <= 64 * 1024 * 1024, "Boot image exceeds 64 MiB")
-    with target.open(entry) as boot:
+    entry = target / "IMAGES/boot.img"
+    boot_size = file_size(entry)
+    check(boot_size <= 64 * 1024 * 1024, "Boot image exceeds 64 MiB")
+    with entry.open("rb") as boot:
         header = boot.read(1660)
         check(len(header) == 1660 and header[:8] == b"ANDROID!", "Invalid boot image header")
         page_size, version = struct.unpack_from("<II", header, 36)
@@ -71,24 +79,28 @@ def verify_boot_images(target):
         check(kernel and ramdisk and dtb, "Boot image is missing its kernel, ramdisk or DTB")
         dtb_offset = page_size + sum((size + page_size - 1) // page_size * page_size
                                      for size in (kernel, ramdisk, second, recovery_dtbo))
-        check(dtb_offset + dtb <= target.getinfo(entry).file_size, "Truncated boot image DTB")
+        check(dtb_offset + dtb <= boot_size, "Truncated boot image DTB")
         boot.seek(dtb_offset)
         check(boot.read(4) == b"\xd0\x0d\xfe\xed", "Boot image has an invalid DTB")
-    dtbo = "IMAGES/dtbo.img"
-    with target.open(dtbo) as image:
-        check(target.getinfo(dtbo).file_size <= 8 * 1024 * 1024 and
+    dtbo = target / "IMAGES/dtbo.img"
+    with dtbo.open("rb") as image:
+        check(file_size(dtbo) <= 8 * 1024 * 1024 and
               image.read(4) == b"\xd7\xb7\xab\x1e", "Invalid Coral DTBO image")
     for image in ("vbmeta", "vbmeta_system"):
-        with target.open(f"IMAGES/{image}.img") as vbmeta:
+        with (target / f"IMAGES/{image}.img").open("rb") as vbmeta:
             check(vbmeta.read(4) == b"AVB0", f"Invalid {image} image")
 
 
 def verify(product_out, debug_adb):
-    target_files = product_out / "obj/PACKAGING/target_files_intermediates/aospa_coral-target_files.zip"
-    with ZipFile(target_files) as target:
-        partitions = properties(target, "META/dynamic_partitions_info.txt")
-        misc = properties(target, "META/misc_info.txt")
-        timestamp = properties(target, "SYSTEM/build.prop")["ro.build.date.utc"]
+    target_files = product_out / "obj/PACKAGING/target_files_intermediates/aospa_coral-target_files"
+    with ExitStack() as stack:
+        # otapackage consumes the directory. target-files-package also creates a zip.
+        target = target_files
+        if not target_files.is_dir():
+            target = ZipPath(stack.enter_context(ZipFile(target_files.with_suffix(".zip"))))
+        partitions = properties(target / "META/dynamic_partitions_info.txt")
+        misc = properties(target / "META/misc_info.txt")
+        timestamp = properties(target / "SYSTEM/build.prop")["ro.build.date.utc"]
         check(misc.get("ab_update") == "true", "Build must use A/B updates")
         check(partitions.get("virtual_ab") != "true", "Virtual A/B is enabled")
         check(partitions.get("super_partition_size") == "9755951104", "Unexpected Coral super size")
@@ -101,17 +113,18 @@ def verify(product_out, debug_adb):
         sizes = {name: partition_image_size(target, name) for name in DYNAMIC_PARTITIONS}
         total = sum(sizes.values())
         check(total <= SLOT_BYTES, f"Images need {total:,} bytes, slot holds {SLOT_BYTES:,}: {sizes}")
-        product_props = properties(target, "PRODUCT/etc/build.prop")
+        product_props = properties(target / "PRODUCT/etc/build.prop")
         check(product_props.get("ro.bpf.kver_override") == "5.10.239",
               "Missing Coral BPF compatibility property")
         if debug_adb:
-            vendor_props = properties(target, "VENDOR/build.prop")
+            vendor_props = properties(target / "VENDOR/build.prop")
             check(product_props.get("ro.adb.secure") == "0" and
                   vendor_props.get("ro.vendor.penguinos.coral_early_adb") == "true",
                   "Expected the private development ADB properties")
-            target.getinfo("SYSTEM/etc/init/pixelos-boot-capture.rc")
+            check((target / "SYSTEM/etc/init/pixelos-boot-capture.rc").is_file(),
+                  "Missing Coral boot capture service")
 
-        fstab = target.read("BOOT/RAMDISK/first_stage_ramdisk/fstab.sm8150").decode()
+        fstab = (target / "BOOT/RAMDISK/first_stage_ramdisk/fstab.sm8150").read_text(encoding="utf-8")
         mounts = {fields[1] for line in fstab.splitlines() if (fields := line.split()) and
                   not fields[0].startswith("#") and len(fields) >= 5 and
                   "first_stage_mount" in fields[4].split(",")}
@@ -122,7 +135,7 @@ def verify(product_out, debug_adb):
         verify_keymaster(target)
 
     with ZipFile(product_out / "aospa_coral-ota.zip") as ota:
-        metadata = properties(ota, "META-INF/com/android/metadata")
+        metadata = properties(ZipPath(ota) / "META-INF/com/android/metadata")
         check(metadata.get("ota-type") == "AB" and metadata.get("pre-device") == "coral",
               "OTA must target Coral and use A/B")
         check(metadata.get("post-timestamp") == timestamp, "OTA and target-files builds differ")
