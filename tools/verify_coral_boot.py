@@ -144,6 +144,20 @@ def verify(product_out, debug_adb):
         check({"/system", "/system_ext", "/vendor", "/product", "/metadata"} <= mounts,
               "Incomplete first-stage ramdisk fstab")
 
+        # Check AVB's actual first-stage descriptor ownership. Product is listed
+        # in BOARD_AVB_VBMETA_SYSTEM alongside system and system_ext; the
+        # unqualified 'avb' flag incorrectly resolves via the top-level vbmeta.
+        mount_flags = {
+            parts[1]: set(parts[4].split(","))
+            for line in fstab.splitlines()
+            if (parts := line.split()) and not parts[0].startswith("#") and len(parts) >= 5
+        }
+        for partition in ("/system", "/system_ext", "/product"):
+            check("avb=vbmeta_system" in mount_flags.get(partition, set()),
+                  f"Invalid AVB descriptor source for {partition}")
+        check("avb=vbmeta" in mount_flags.get("/vendor", set()),
+              "Invalid vendor AVB descriptor source")
+
         verify_boot_images(target)
         verify_keymaster(target)
 
