@@ -5,9 +5,10 @@ It uses the PixelOS device tree and vendor, the Floral 4.14 KernelSU Next
 kernel, Lunaris Dolby, hardware 3D Face ID, Motion Sense, Active Edge, and
 the signed Google Camera split set.
 
-This branch includes the Coral BPF compatibility patch and pins the early
-ADB changes in [penguinos-floral-dt](https://github.com/its-hecker/penguinos-floral-dt).
-The diagnostic image needs a ServerHive build and a phone test.
+This branch uses Coral's stock 9,755,951,104-byte `super` geometry and regular
+A/B updates. Celerity requires userspace snapshots for Virtual A/B. The
+Floral kernel supports kernel snapshots. The first boot test builds the vanilla
+product to fit the stock slot and retains the Floral device integrations.
 
 From a fresh ServerHive checkout:
 
@@ -15,25 +16,32 @@ From a fresh ServerHive checkout:
 mkdir -p ~/penguinos-coral
 cd ~/penguinos-coral
 repo init -u https://github.com/Project-PenguinOS/manifest.git -b celerity --git-lfs
-git clone -b fix/coral-early-adb-20261116 https://github.com/its-hecker/Penguinos-floral-localmanifest.git .repo/local_manifests
+git clone -b fix/coral-stock-ab-20261117 https://github.com/its-hecker/Penguinos-floral-localmanifest.git .repo/local_manifests
 repo sync -c --fail-fast --no-clone-bundle --no-tags -j4
-bash .repo/local_manifests/build.sh coral -g
 ```
-
-The build helper runs the hardware preparation before invoking PenguinOS's
-build script. Use `-l` to select the upstream vanilla build option.
 
 ### Coral boot diagnostics
 
 The private Coral `userdebug` build accepts ADB from any connected USB
 computer without an authorization prompt, as in HeckerOS. The USB gadget
-starts during `post-fs-data`, once Android has activated the ADB APEX.
+starts at `early-fs`, and init queues adbd until APEX configuration is ready.
 `adb root` requests a root shell and `adb logcat -b all` captures the boot log.
 
 ```bash
 env -u PENGUIN_CORAL_ADB_PUBKEY OUT_DIR=out PENGUIN_DEV_USB_ADB=true \
-  bash .repo/local_manifests/build.sh coral -t userdebug -g
+  bash .repo/local_manifests/build.sh coral -t userdebug -i -l
+
+product_out=out/target/product/coral
+python3 .repo/local_manifests/tools/verify_coral_boot.py "$product_out" --debug-adb
+unzip -oj "$product_out/obj/PACKAGING/target_files_intermediates/aospa_coral-target_files.zip" \
+  IMAGES/boot.img IMAGES/dtbo.img IMAGES/vbmeta.img -d "$product_out/install"
 ```
+
+Use the images in `out/target/product/coral/install` and sideload
+`out/target/product/coral/aospa_coral-ota.zip` through the PenguinOS recovery
+from that build. System startup still needs a phone test. Recovery ADB can
+read the diagnostic files from `/metadata/pixelos-boot-debug` if Android init
+reaches the capture service.
 
 ### Qualcomm firmware mountpoint make-rule compatibility
 
@@ -55,8 +63,7 @@ helper again; no clean build is required solely for this make-rule fix.
 
 ```bash
 cd ~/penguinos-coral
-git -C .repo/local_manifests pull --ff-only origin main
-bash .repo/local_manifests/build.sh coral -g
+bash .repo/local_manifests/build.sh coral -l
 ```
 
 ### Coral Qualcomm display kernel UAPI headers
