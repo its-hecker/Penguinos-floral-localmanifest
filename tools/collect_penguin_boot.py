@@ -133,12 +133,14 @@ def main():
                 current = mode
                 if serial and state == "device":
                     attempt = folder / ("android-" + stamp())
-                    capture(adb, serial, attempt, state)
+                    attempt.mkdir(parents=True, exist_ok=True)
+                    # Start live streaming FIRST; adb may vanish during the snapshots.
                     logcat_path = attempt / "logcat-live.txt"
                     livefile = logcat_path.open("wb")
                     stream = subprocess.Popen([adb, "-s", serial, "logcat", "-b", "all",
                                                "-v", "threadtime"], stdout=livefile,
                                               stderr=subprocess.DEVNULL)
+                    capture(adb, serial, attempt, state)
                 elif serial and state == "recovery":
                     key = (serial, stamp())
                     if key not in recovery_done:
@@ -150,6 +152,11 @@ def main():
                     livefile.close()
                     livefile = None
                 # ADB may disconnect briefly while Android bootloops.
+            if state == "device" and stream is None and livefile is None and logcat_path:
+                livefile = logcat_path.open("ab")
+                stream = subprocess.Popen([adb, "-s", serial, "logcat", "-b", "all",
+                                           "-v", "threadtime"], stdout=livefile,
+                                          stderr=subprocess.DEVNULL)
             time.sleep(0.45)
     except KeyboardInterrupt:
         print("\nStopping capture...", flush=True)
