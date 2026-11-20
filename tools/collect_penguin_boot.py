@@ -72,9 +72,21 @@ def capture(adb, serial, folder, state):
         output = execute(prefix + ["logcat", "-b", "all", "-v", "threadtime", "-d"], timeout=8)
         write_result(folder / "logcat-snapshot.txt", output)
     else:
-        # Recovery often does not mount metadata until instructed.
-        execute(prefix + ["shell", "mount /metadata"], timeout=8)
-        shell("metadata-mount.txt", "grep ' /metadata ' /proc/mounts")
+        # Recovery may not have /etc/fstab; do not use bare "mount /metadata".
+        # Explicit ext4 mount preserves existing evidence and does not wipe it.
+        shell("recovery-identity.txt", "id")
+        mounted = execute(prefix + ["shell", "grep -q ' /metadata ' /proc/mounts"], timeout=8)
+        if mounted.returncode != 0:
+            mount = execute(prefix + ["shell",
+                             "mkdir -p /metadata && mount -t ext4 /dev/block/by-name/metadata /metadata"],
+                            timeout=8)
+            (folder / "metadata-mount-attempt.txt").write_text(
+                "returncode=" + str(mount.returncode) + "\n"
+                + mount.stdout.decode(errors="replace")
+                + mount.stderr.decode(errors="replace"),
+                encoding="utf-8",
+            )
+        shell("metadata-mount.txt", "grep ' /metadata ' /proc/mounts || echo metadata-not-mounted")
         shell("boot-debug-list.txt", "ls -la /metadata/pixelos-boot-debug")
         for remote, local in (
             ("/metadata/pixelos-boot-debug", "saved-android-boot"),
